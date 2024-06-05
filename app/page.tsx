@@ -1,113 +1,157 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Line } from 'react-chartjs-2';
+import 'chart.js/auto';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { subYears, format } from 'date-fns';
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+  const [data, setData] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+  const [packageName, setPackageName] = useState('');
+  const [packages, setPackages] = useState<string[]>([
+    '@sd-jwt/core',
+    '@sd-jwt/types',
+    '@sd-jwt/decode',
+    '@sd-jwt/utils',
+    '@sd-jwt/present',
+    '@sd-jwt/sd-jwt-vc',
+    '@sd-jwt/hash',
+    '@sd-jwt/jwt-status-list',
+    '@sd-jwt/crypto-nodejs',
+    '@sd-jwt/crypto-browser',
+  ]);
+  const [startDate, setStartDate] = useState(subYears(new Date(), 1));
+  const [endDate, setEndDate] = useState(new Date());
+  const [totalDownloads, setTotalDownloads] = useState<number>(0); // 총 다운로드 수 상태 추가
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+  useEffect(() => {
+    async function getData() {
+      const formattedStartDate = format(startDate, 'yyyy-MM-dd');
+      const formattedEndDate = format(endDate, 'yyyy-MM-dd');
+      const newData: any = {};
+      let newTotalDownloads = 0;
+
+      for (const pkg of packages) {
+        const response = await fetch(
+          `https://api.npmjs.org/downloads/range/${formattedStartDate}:${formattedEndDate}/${pkg}`,
+        );
+        const result = await response.json();
+        console.log('result', result, pkg);
+        let cumulativeDownloads = 0;
+        const cumulativeData = result.downloads.map((entry: any) => {
+          cumulativeDownloads += entry.downloads;
+          return {
+            day: entry.day,
+            downloads: cumulativeDownloads,
+          };
+        });
+        newData[pkg] = cumulativeData;
+        newTotalDownloads += cumulativeDownloads;
+      }
+
+      setData(newData);
+      setTotalDownloads(newTotalDownloads);
+      setLoading(false);
+    }
+
+    if (packages.length > 0) {
+      getData();
+    }
+  }, [packages, startDate, endDate]);
+
+  const handleAddPackage = async () => {
+    if (!packageName) return;
+
+    const response = await fetch(
+      `https://api.npmjs.org/downloads/point/last-week/${packageName}`,
+    );
+    if (response.status === 200) {
+      if (!packages.includes(packageName)) {
+        setPackages([...packages, packageName]);
+        setPackageName('');
+      } else {
+        alert('Package already added');
+      }
+    } else {
+      alert('Package not found');
+    }
+  };
+
+  const handleRemovePackage = (pkg: string) => {
+    setPackages(packages.filter((packageName) => packageName !== pkg));
+    setData((prevData: any) => {
+      const newData = { ...prevData };
+      delete newData[pkg];
+      return newData;
+    });
+    setTotalDownloads((prevTotal) => {
+      const newTotal =
+        prevTotal - (data[pkg] ? data[pkg][data[pkg].length - 1].downloads : 0);
+      return newTotal;
+    });
+  };
+
+  const aggregatedData = () => {
+    if (!packages.length || !data[packages[0]]) return [];
+    if (packages.length !== Object.keys(data).length) return [];
+
+    const days = data[packages[0]].map((entry: any) => entry.day);
+    const aggregatedDownloads = days.map((day: string, index: number) => {
+      let total = 0;
+      console.log('data', data);
+      for (const pkg of packages) {
+        total += data[pkg][index]?.downloads || 0;
+      }
+      return { day, downloads: total };
+    });
+
+    return aggregatedDownloads;
+  };
+
+  const chartData = {
+    labels: aggregatedData().map((entry: any) => entry.day),
+    datasets: [
+      {
+        label: 'Cumulative Downloads',
+        data: aggregatedData().map((entry: any) => entry.downloads),
+        fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1,
+      },
+    ],
+  };
+
+  return (
+    <div>
+      <h1>Cumulative Downloads for Selected Packages</h1>
+      <h2>Total Downloads: {totalDownloads.toLocaleString()}</h2>{' '}
+      {/* 총 다운로드 수 표시 */}
+      <div>
+        <label>Start Date: </label>
+        <DatePicker
+          selected={startDate}
+          onChange={(date) => date && setStartDate(date)}
         />
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+      <Line data={chartData} />
+      <input
+        type="text"
+        value={packageName}
+        onChange={(e) => setPackageName(e.target.value)}
+        placeholder="Enter package name"
+      />
+      <button onClick={handleAddPackage}>Add Package</button>
+      <ul>
+        {packages.map((pkg) => (
+          <li key={pkg}>
+            {pkg}{' '}
+            <button onClick={() => handleRemovePackage(pkg)}>Remove</button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
