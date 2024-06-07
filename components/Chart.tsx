@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import "chart.js/auto";
-import "react-datepicker/dist/react-datepicker.css";
-import { Line } from "react-chartjs-2";
-import { fetchChartData } from "@/lib/fetchDownloads";
-import { use, useEffect, useState } from "react";
-import { useAppContext } from "@/context/AppContext";
-import { Transition } from "@headlessui/react";
+import 'chart.js/auto';
+import 'react-datepicker/dist/react-datepicker.css';
+import { Line } from 'react-chartjs-2';
+import { fetchChartData } from '@/lib/fetchDownloads';
+import { use, useEffect, useState } from 'react';
+import { useAppContext } from '@/context/AppContext';
+import { Transition } from '@headlessui/react';
 
 const chartOptions = {
   responsive: true,
   scales: {
     y: {
       grid: {
-        color: "rgba(255, 255, 255, 0.1)", // Y축 그리드 색상을 흰색(투명도 0.1)으로 설정
+        color: 'rgba(255, 255, 255, 0.1)', // Set Y-axis grid color to white (transparency 0.1)
       },
     },
   },
@@ -47,7 +47,13 @@ export default function Chart() {
         leaveTo="opacity-0 translate-y-20"
       >
         <div className="chart-container">
-          <Line data={chartData} options={{ ...chartOptions, animation: { duration: 500, easing: "easeOutQuart" } }} />
+          <Line
+            data={chartData}
+            options={{
+              ...chartOptions,
+              animation: { duration: 500, easing: 'easeOutQuart' },
+            }}
+          />
         </div>
       </Transition>
     </div>
