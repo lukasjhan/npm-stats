@@ -56,6 +56,7 @@ export async function fetchChartData(packages: string[], startDate: Date, endDat
         fill: false,
         borderColor: colors.orange,
         tension: 0.1,
+        pointRadius: 0,
       },
     ],
   };
