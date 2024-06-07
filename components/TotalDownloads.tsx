@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useAppContext } from "@/context/AppContext";
-import { fetchTotalDownloads } from "@/lib/fetchDownloads";
-import { Transition } from "@headlessui/react";
-import { useEffect, useState } from "react";
+import { useAppContext } from '@/context/AppContext';
+import { fetchTotalDownloads } from '@/lib/fetchDownloads';
+import { Transition } from '@headlessui/react';
+import { useEffect, useState } from 'react';
 
 const SlotMachineNumber = ({ number }: { number: number }) => {
-  const [displayNumber, setDisplayNumber] = useState("");
+  const [displayNumber, setDisplayNumber] = useState('');
 
   useEffect(() => {
     const finalNumber = number.toLocaleString();
@@ -15,11 +15,11 @@ const SlotMachineNumber = ({ number }: { number: number }) => {
 
     const interval = setInterval(() => {
       currentIndex += 1;
-      let newDisplayNumber = "";
+      let newDisplayNumber = '';
 
       for (let i = 0; i < maxLength; i++) {
-        if (finalNumber[i] === ",") {
-          newDisplayNumber += ",";
+        if (finalNumber[i] === ',') {
+          newDisplayNumber += ',';
         } else if (i < currentIndex) {
           newDisplayNumber += finalNumber[i];
         } else {
@@ -39,7 +39,11 @@ const SlotMachineNumber = ({ number }: { number: number }) => {
     };
   }, [number]);
 
-  return <span className="font-sans font-semibold slashed-zero tabular-nums">{displayNumber}</span>;
+  return (
+    <span className="font-sans font-semibold slashed-zero tabular-nums">
+      {displayNumber}
+    </span>
+  );
 };
 
 export default function TotalDownloads() {
@@ -56,8 +60,14 @@ export default function TotalDownloads() {
   }, [packages, startDate, endDate]);
 
   return (
-    <Transition appear show={totalDownloads !== null} enter="transition duration-300 ease-in" enterFrom="translate-y-5 opacity-0" enterTo="translate-y-0 opacity-100">
-      <h2 className="text-3xl">
+    <Transition
+      appear
+      show={totalDownloads !== null}
+      enter="transition duration-300 ease-in"
+      enterFrom="translate-y-5 opacity-0"
+      enterTo="translate-y-0 opacity-100"
+    >
+      <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl">
         Total Downloads: <SlotMachineNumber number={totalDownloads ?? 0} />
       </h2>
     </Transition>
