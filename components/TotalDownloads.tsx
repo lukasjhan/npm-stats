@@ -58,7 +58,7 @@ export default function TotalDownloads() {
   return (
     <Transition appear show={totalDownloads !== null} enter="transition duration-300 ease-in" enterFrom="translate-y-5 opacity-0" enterTo="translate-y-0 opacity-100">
       <h2 className="text-3xl">
-        Total Downloads: <SlotMachineNumber number={totalDownloads} />
+        Total Downloads: <SlotMachineNumber number={totalDownloads ?? 0} />
       </h2>
     </Transition>
   );
