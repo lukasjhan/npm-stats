@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.0.4",
     "@types/react-datepicker": "^6.2.0",
     "axios": "^1.7.2",
     "chart.js": "^4.4.3",
