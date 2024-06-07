@@ -51,11 +51,10 @@ export async function fetchChartData(packages: string[], startDate: Date, endDat
     labels: aggregatedDownloads.map((entry: any) => entry.day),
     datasets: [
       {
-        label: "Cumulative Downloads",
+        label: "Total Downloads",
         data: aggregatedDownloads.map((entry: any) => entry.downloads),
         fill: false,
         borderColor: colors.orange,
-        // backgroundColor: colors.orange,
         tension: 0.1,
       },
     ],
