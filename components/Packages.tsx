@@ -62,7 +62,7 @@ export default function Packages() {
   return (
     <Button
       onClick={() => setIsOpen(true)}
-      className="bg-neutral-800 text-app-white px-4 py-2 rounded-md hover:bg-app-orange transition duration-200"
+      className="text-app-white border border-app-white px-4 py-2 rounded-md hover:bg-neutral-200 hover:text-black transition duration-200"
     >
       <div className="text-sm sm:text-base">Edit Packages</div>
       <Transition appear show={isOpen}>
