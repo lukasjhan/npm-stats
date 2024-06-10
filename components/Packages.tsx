@@ -14,6 +14,8 @@ import {
   useClose,
 } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/solid';
+import { DatePickerStart } from './DatePickerStart';
+import { DatePickerEnd } from './DatePickerEnd';
 
 function DialogCloseButton() {
   let close = useClose();
@@ -33,7 +35,7 @@ export default function Packages() {
     if (!packageName) return;
 
     const response = await fetch(
-      `https://api.npmjs.org/downloads/point/last-week/${packageName}`
+      `https://api.npmjs.org/downloads/point/last-week/${packageName}`,
     );
     if (response.status === 200) {
       if (!packages.includes(packageName)) {
@@ -92,6 +94,14 @@ export default function Packages() {
                   </DialogTitle>
                   <CloseButton as={DialogCloseButton}>X</CloseButton>
                 </div>
+                <div className="mb-2 flex space-x-2 justify-between items-center">
+                  <span>Start: </span>
+                  <DatePickerStart />
+                </div>
+                <div className="mb-6 flex space-x-2 justify-between items-center">
+                  <span>End: </span>
+                  <DatePickerEnd />
+                </div>
                 <div className="mb-4 flex space-x-2">
                   <input
                     type="text"
@@ -103,7 +113,7 @@ export default function Packages() {
                   />
                   <button
                     onClick={handleAddPackage}
-                    className="bg-app-orange text-white px-4 py-2 rounded-md hover:bg-app-orange/70 transition duration-200"
+                    className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition duration-200"
                   >
                     Add
                   </button>

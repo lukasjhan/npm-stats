@@ -1,9 +1,8 @@
-import TotalDownloads from "@/components/TotalDownloads";
-import Packages from "@/components/Packages";
-import Chart from "@/components/Chart";
-import AppProvider from "@/context/AppContext";
-import { Title } from "@/components/Title";
-import { Suspense } from "react";
+import TotalDownloads from '@/components/TotalDownloads';
+import Packages from '@/components/Packages';
+import Chart from '@/components/Chart';
+import AppProvider from '@/context/AppContext';
+import { Title } from '@/components/Title';
 
 export default function Home() {
   return (
