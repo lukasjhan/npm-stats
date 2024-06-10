@@ -1,41 +1,42 @@
-import colors from "@/lib/colors";
-import { format } from "date-fns";
+import colors from '@/lib/colors';
+import { format } from 'date-fns';
 
-export async function fetchDownloads(packages: string[], startDate: Date, endDate: Date) {
-  const formattedStartDate = format(startDate, "yyyy-MM-dd");
-  const formattedEndDate = format(endDate, "yyyy-MM-dd");
-  const data: any = {};
-  let totalDownloads = 0;
+export async function fetchDownloads(
+  packages: string[],
+  startDate: Date,
+  endDate: Date,
+) {
+  const formattedStartDate = format(startDate, 'yyyy-MM-dd');
+  const formattedEndDate = format(endDate, 'yyyy-MM-dd');
 
-  const promises = packages.map(async (pkg) => {
-    const response = await fetch(
-      `https://api.npmjs.org/downloads/range/${formattedStartDate}:${formattedEndDate}/${pkg}`,
-      { next: { revalidate: 3600 } } // Revalidate once a day
-    );
-    const result = await response.json();
-    let cumulativeDownloads = 0;
-    const cumulativeData = result.downloads.map((entry: any) => {
-      cumulativeDownloads += entry.downloads;
-      return {
-        day: entry.day,
-        downloads: cumulativeDownloads,
-      };
-    });
-    data[pkg] = cumulativeData;
-    totalDownloads += cumulativeDownloads;
-  });
+  const response = await fetch(
+    `/api/downloads?packages=${packages.join(
+      ',',
+    )}&startDate=${formattedStartDate}&endDate=${formattedEndDate}`,
+  );
 
-  await Promise.all(promises);
+  if (!response.ok) {
+    throw new Error('Failed to fetch downloads');
+  }
 
+  const { data, totalDownloads } = await response.json();
   return { data, totalDownloads };
 }
 
-export async function fetchTotalDownloads(packages: string[], startDate: Date, endDate: Date) {
+export async function fetchTotalDownloads(
+  packages: string[],
+  startDate: Date,
+  endDate: Date,
+) {
   const { totalDownloads } = await fetchDownloads(packages, startDate, endDate);
   return totalDownloads;
 }
 
-export async function fetchChartData(packages: string[], startDate: Date, endDate: Date) {
+export async function fetchChartData(
+  packages: string[],
+  startDate: Date,
+  endDate: Date,
+) {
   const { data } = await fetchDownloads(packages, startDate, endDate);
 
   const days = data[packages[0]].map((entry: any) => entry.day);
@@ -51,7 +52,7 @@ export async function fetchChartData(packages: string[], startDate: Date, endDat
     labels: aggregatedDownloads.map((entry: any) => entry.day),
     datasets: [
       {
-        label: "Total Downloads",
+        label: 'Total Downloads',
         data: aggregatedDownloads.map((entry: any) => entry.downloads),
         fill: false,
         borderColor: colors.orange,
